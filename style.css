@@ -451,6 +451,14 @@ select.input option {
 .login-error { color: var(--danger); }
 .login-success { color: var(--success); }
 
+.login-link {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.login-link:hover { color: var(--accent); }
+
 /* ── 유틸리티 ── */
 .hidden { display: none !important; }
 
