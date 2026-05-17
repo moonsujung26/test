@@ -6,7 +6,7 @@
 // 1. Supabase 연결 설정
 //    아래 두 값을 본인 Supabase 프로젝트 값으로 교체하세요!
 // ──────────────────────────────────────────
-const SUPABASE_URL = 'https://jghoyzmizwbsomkpxebm.supabase.co'
+const SUPABASE_URL = 'https://jghoyzmizwbsomkpxebm.supabase.co/rest/v1/'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnaG95em1pendic29ta3B4ZWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5ODM1OTAsImV4cCI6MjA5NDU1OTU5MH0.JbNHPB3O0sxfKpsTF1oj7QDQ5JmTq3kU21Ycormk15w'
 
 const { createClient } = supabase
