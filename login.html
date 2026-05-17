@@ -12,84 +12,39 @@
   <div class="login-wrap">
     <div class="login-box">
       <div class="login-logo">📦 재고관리</div>
+      <div class="login-sub">계속하려면 로그인하세요</div>
 
-      <!-- 로그인 폼 -->
-      <div id="section-login">
-        <div class="login-sub">계속하려면 로그인하세요</div>
-        <div class="login-field">
-          <label>이메일</label>
-          <input class="input" type="email" id="input-email" placeholder="이메일 입력" />
-        </div>
-        <div class="login-field">
-          <label>비밀번호</label>
-          <input class="input" type="password" id="input-password" placeholder="비밀번호 입력" />
-        </div>
-        <button class="btn btn-primary btn-full" id="btn-login">로그인</button>
-        <div class="login-msg login-error" id="login-error"></div>
+      <div class="login-field">
+        <label>이메일</label>
+        <input class="input" type="email" id="input-email" placeholder="이메일 입력" />
+      </div>
+      <div class="login-field">
+        <label>비밀번호</label>
+        <input class="input" type="password" id="input-password" placeholder="비밀번호 입력" />
       </div>
 
-      <!-- 비밀번호 설정 폼 (초대 링크 클릭 시 표시) -->
-      <div id="section-setpw" class="hidden">
-        <div class="login-sub">🎉 초대를 수락했습니다!<br>사용할 비밀번호를 설정해주세요</div>
-        <div class="login-field">
-          <label>새 비밀번호</label>
-          <input class="input" type="password" id="input-newpw" placeholder="비밀번호 입력 (6자 이상)" />
-          <span class="login-hint">영문, 숫자 포함 6자 이상 권장</span>
-        </div>
-        <div class="login-field">
-          <label>비밀번호 확인</label>
-          <input class="input" type="password" id="input-newpw-confirm" placeholder="비밀번호 다시 입력" />
-        </div>
-        <button class="btn btn-primary btn-full" id="btn-setpw">비밀번호 설정 완료</button>
-        <div class="login-msg login-error" id="setpw-error"></div>
-        <div class="login-msg login-success hidden" id="setpw-success">✅ 설정 완료! 잠시 후 이동합니다...</div>
-      </div>
+      <button class="btn btn-primary btn-full" id="btn-login">로그인</button>
+      <div class="login-msg login-error" id="login-error"></div>
 
+      <!-- 비밀번호 변경 링크 -->
+      <div style="text-align:center; margin-top:20px;">
+        <a href="password.html" class="login-link">🔑 비밀번호 변경</a>
+      </div>
     </div>
   </div>
 
   <script>
-    // ✅ URL 뒤에 /rest/v1/ 없어야 함!
     const SUPABASE_URL = 'https://jghoyzmizwbsomkpxebm.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnaG95em1pendic29ta3B4ZWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5ODM1OTAsImV4cCI6MjA5NDU1OTU5MH0.JbNHPB3O0sxfKpsTF1oj7QDQ5JmTq3kU21Ycormk15w'
 
     const { createClient } = supabase
     const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    const hide = el => el.classList.add('hidden')
-    const show = el => el.classList.remove('hidden')
-
-    // Supabase v2는 URL 해시의 토큰을 자동으로 처리함
-    // onAuthStateChange로 세션 변화를 감지하는 게 더 안정적!
-    db.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // 초대 수락 또는 비밀번호 재설정으로 로그인된 경우
-        const hash = window.location.hash
-        if (hash.includes('type=invite') || hash.includes('type=recovery')) {
-          hide(document.getElementById('section-login'))
-          show(document.getElementById('section-setpw'))
-          history.replaceState(null, '', window.location.pathname)
-          return
-        }
-        // 일반 로그인은 index.html로
-        window.location.href = 'index.html'
-      }
+    // 이미 로그인된 경우 메인으로
+    db.auth.getSession().then(({ data }) => {
+      if (data.session) window.location.href = 'index.html'
     })
 
-    async function init() {
-      // 이미 로그인된 세션이 있으면 메인으로
-      const { data: { session } } = await db.auth.getSession()
-      if (session) {
-        const hash = window.location.hash
-        if (!hash.includes('type=invite') && !hash.includes('type=recovery')) {
-          window.location.href = 'index.html'
-        }
-      }
-    }
-
-    init()
-
-    // ── 로그인 ──
     document.getElementById('btn-login').addEventListener('click', async () => {
       const email = document.getElementById('input-email').value.trim()
       const password = document.getElementById('input-password').value
@@ -113,43 +68,12 @@
         btn.disabled = false
         return
       }
-      // onAuthStateChange가 자동으로 index.html로 이동시켜줌
+
+      window.location.href = 'index.html'
     })
 
     document.getElementById('input-password').addEventListener('keydown', e => {
       if (e.key === 'Enter') document.getElementById('btn-login').click()
-    })
-
-    // ── 비밀번호 설정 ──
-    document.getElementById('btn-setpw').addEventListener('click', async () => {
-      const pw = document.getElementById('input-newpw').value
-      const pwConfirm = document.getElementById('input-newpw-confirm').value
-      const errEl = document.getElementById('setpw-error')
-      errEl.textContent = ''
-
-      if (!pw || !pwConfirm) { errEl.textContent = '비밀번호를 입력해주세요'; return }
-      if (pw.length < 6) { errEl.textContent = '비밀번호는 6자 이상이어야 합니다'; return }
-      if (pw !== pwConfirm) { errEl.textContent = '비밀번호가 일치하지 않습니다'; return }
-
-      const btn = document.getElementById('btn-setpw')
-      btn.textContent = '설정 중...'
-      btn.disabled = true
-
-      const { error } = await db.auth.updateUser({ password: pw })
-
-      if (error) {
-        errEl.textContent = '설정 실패: ' + error.message
-        btn.textContent = '비밀번호 설정 완료'
-        btn.disabled = false
-        return
-      }
-
-      show(document.getElementById('setpw-success'))
-      setTimeout(() => { window.location.href = 'index.html' }, 2000)
-    })
-
-    document.getElementById('input-newpw-confirm').addEventListener('keydown', e => {
-      if (e.key === 'Enter') document.getElementById('btn-setpw').click()
     })
   </script>
 </body>
