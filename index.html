@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>재고 관리 시스템</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ===== 헤더 ===== -->
+  <header class="header">
+    <div class="header-inner">
+      <h1 class="logo">📦 재고관리</h1>
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="dashboard">대시보드</button>
+        <button class="tab-btn" data-tab="stock">재고 현황</button>
+        <button class="tab-btn" data-tab="orders">출고 내역</button>
+        <button class="tab-btn" data-tab="purchases">발주 내역</button>
+        <button class="tab-btn" data-tab="admin">유저 관리</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== 메인 ===== -->
+  <main class="main">
+
+    <!-- 대시보드 탭 -->
+    <section id="tab-dashboard" class="tab-content active">
+      <div class="summary-grid">
+        <div class="summary-card">
+          <span class="summary-label">전체 상품 수</span>
+          <span class="summary-value" id="total-products">-</span>
+        </div>
+        <div class="summary-card warning">
+          <span class="summary-label">재고 부족 상품</span>
+          <span class="summary-value" id="low-stock-count">-</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">오늘 출고 건수</span>
+          <span class="summary-value" id="today-orders">-</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">입고 대기 발주</span>
+          <span class="summary-value" id="pending-purchases">-</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 재고 현황 탭 -->
+    <section id="tab-stock" class="tab-content">
+      <div class="section-header">
+        <h2 class="section-title">재고 현황</h2>
+        <button class="btn btn-primary" id="btn-add-product">+ 상품 추가</button>
+      </div>
+
+      <!-- 상품 추가 폼 (기본 숨김) -->
+      <div class="form-box hidden" id="form-add-product">
+        <h3>상품 추가</h3>
+        <div class="form-row">
+          <input class="input" type="text" id="input-name" placeholder="상품명" />
+          <input class="input" type="text" id="input-sku" placeholder="SKU (상품코드)" />
+          <input class="input" type="text" id="input-category" placeholder="카테고리" />
+        </div>
+        <div class="form-row">
+          <input class="input" type="number" id="input-price" placeholder="단가" />
+          <input class="input" type="number" id="input-stock" placeholder="초기 재고 수량" />
+          <input class="input" type="number" id="input-min-stock" placeholder="최소 재고 기준" />
+        </div>
+        <div class="form-row">
+          <input class="input" type="text" id="input-naver-id" placeholder="네이버 상품번호 (선택)" />
+          <input class="input" type="text" id="input-coupang-id" placeholder="쿠팡 상품번호 (선택)" />
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btn-submit-product">저장</button>
+          <button class="btn btn-ghost" id="btn-cancel-product">취소</button>
+        </div>
+      </div>
+
+      <!-- 재고 테이블 -->
+      <div class="table-wrap">
+        <table class="table" id="stock-table">
+          <thead>
+            <tr>
+              <th>상품명</th>
+              <th>SKU</th>
+              <th>카테고리</th>
+              <th>단가</th>
+              <th>시스템 재고</th>
+              <th>실재고</th>
+              <th>최소 기준</th>
+              <th>상태</th>
+              <th>재고 조정</th>
+            </tr>
+          </thead>
+          <tbody id="stock-tbody">
+            <!-- JS로 동적 렌더링 -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 출고 내역 탭 -->
+    <section id="tab-orders" class="tab-content">
+      <div class="section-header">
+        <h2 class="section-title">출고 내역</h2>
+        <button class="btn btn-primary" id="btn-add-order">+ 출고 입력</button>
+      </div>
+
+      <!-- 출고 입력 폼 (기본 숨김) -->
+      <div class="form-box hidden" id="form-add-order">
+        <h3>출고 입력</h3>
+        <div class="form-row">
+          <select class="input" id="input-order-product">
+            <option value="">상품 선택</option>
+          </select>
+          <select class="input" id="input-order-channel">
+            <option value="naver">네이버 스마트스토어</option>
+            <option value="coupang">쿠팡</option>
+            <option value="manual">직접 입력</option>
+          </select>
+          <input class="input" type="text" id="input-order-no" placeholder="주문번호" />
+          <input class="input" type="number" id="input-order-qty" placeholder="출고 수량" />
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btn-submit-order">저장</button>
+          <button class="btn btn-ghost" id="btn-cancel-order">취소</button>
+        </div>
+      </div>
+
+      <!-- 출고 테이블 -->
+      <div class="table-wrap">
+        <table class="table" id="orders-table">
+          <thead>
+            <tr>
+              <th>날짜</th>
+              <th>상품명</th>
+              <th>채널</th>
+              <th>주문번호</th>
+              <th>출고 수량</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody id="orders-tbody">
+            <!-- JS로 동적 렌더링 -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 발주 내역 탭 -->
+    <section id="tab-purchases" class="tab-content">
+      <div class="section-header">
+        <h2 class="section-title">발주 내역</h2>
+        <button class="btn btn-primary" id="btn-add-purchase">+ 발주 입력</button>
+      </div>
+
+      <!-- 발주 입력 폼 (기본 숨김) -->
+      <div class="form-box hidden" id="form-add-purchase">
+        <h3>발주 입력</h3>
+        <div class="form-row">
+          <select class="input" id="input-purchase-product">
+            <option value="">상품 선택</option>
+          </select>
+          <input class="input" type="number" id="input-purchase-qty" placeholder="발주 수량" />
+          <input class="input" type="text" id="input-purchase-note" placeholder="메모 (선택)" />
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btn-submit-purchase">저장</button>
+          <button class="btn btn-ghost" id="btn-cancel-purchase">취소</button>
+        </div>
+      </div>
+
+      <!-- 발주 테이블 -->
+      <div class="table-wrap">
+        <table class="table" id="purchases-table">
+          <thead>
+            <tr>
+              <th>발주일</th>
+              <th>상품명</th>
+              <th>발주 수량</th>
+              <th>입고 수량</th>
+              <th>메모</th>
+              <th>상태</th>
+              <th>입고 처리</th>
+            </tr>
+          </thead>
+          <tbody id="purchases-tbody">
+            <!-- JS로 동적 렌더링 -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 유저 관리 탭 (슈퍼관리자 전용) -->
+    <section id="tab-admin" class="tab-content">
+      <div class="section-header">
+        <h2 class="section-title">유저 관리</h2>
+      </div>
+
+      <!-- 역할 안내 -->
+      <div class="role-guide">
+        <div class="role-item">
+          <span class="badge badge-ok">슈퍼관리자</span>
+          <span>전체 조회 · 수정 · 삭제 · 유저 관리</span>
+        </div>
+        <div class="role-item">
+          <span class="badge badge-pending">직원</span>
+          <span>조회 · 출고입력 · 발주입력 · 재고조정</span>
+        </div>
+        <div class="role-item">
+          <span class="badge badge-warn">뷰어</span>
+          <span>조회만 가능</span>
+        </div>
+      </div>
+
+      <!-- 유저 테이블 -->
+      <div class="table-wrap" style="margin-top:20px">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>이메일</th>
+              <th>역할</th>
+              <th>등록일</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- 유저 추가 안내 -->
+      <div class="form-box" style="margin-top:20px">
+        <h3>유저 추가 방법</h3>
+        <ol style="color:var(--text-muted);font-size:0.88rem;line-height:2;padding-left:20px">
+          <li>Supabase → <b style="color:var(--text)">Authentication → Users → Invite user</b> 에서 이메일로 초대</li>
+          <li>초대받은 사람이 이메일 링크로 비밀번호 설정 후 가입</li>
+          <li>Supabase → <b style="color:var(--text)">Table Editor → user_roles</b> 에서 해당 유저 ID와 역할 입력</li>
+        </ol>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== 재고 조정 모달 ===== -->
+  <div class="modal-overlay hidden" id="modal-adjust">
+    <div class="modal">
+      <h3>실재고 조정</h3>
+      <p id="modal-product-name" class="modal-product-name"></p>
+      <div class="form-row">
+        <input class="input" type="number" id="input-adjust-qty" placeholder="실재고 수량 입력" />
+        <input class="input" type="text" id="input-adjust-reason" placeholder="조정 사유 (선택)" />
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="btn-submit-adjust">조정 저장</button>
+        <button class="btn btn-ghost" id="btn-cancel-adjust">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
