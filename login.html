@@ -49,8 +49,12 @@
   </div>
 
   <script>
+<<<<<<< HEAD
     // ✅ URL 뒤에 /rest/v1/ 없어야 함!
     const SUPABASE_URL = 'https://jghoyzmizwbsomkpxebm.supabase.co'
+=======
+    const SUPABASE_URL = 'https://jghoyzmizwbsomkpxebm.supabase.co/rest/v1/'
+>>>>>>> 47373dda80a4970dca6233d9a521c4734fec3be5
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnaG95em1pendic29ta3B4ZWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5ODM1OTAsImV4cCI6MjA5NDU1OTU5MH0.JbNHPB3O0sxfKpsTF1oj7QDQ5JmTq3kU21Ycormk15w'
 
     const { createClient } = supabase
@@ -59,6 +63,7 @@
     const hide = el => el.classList.add('hidden')
     const show = el => el.classList.remove('hidden')
 
+<<<<<<< HEAD
     // Supabase v2는 URL 해시의 토큰을 자동으로 처리함
     // onAuthStateChange로 세션 변화를 감지하는 게 더 안정적!
     db.auth.onAuthStateChange(async (event, session) => {
@@ -66,11 +71,31 @@
         // 초대 수락 또는 비밀번호 재설정으로 로그인된 경우
         const hash = window.location.hash
         if (hash.includes('type=invite') || hash.includes('type=recovery')) {
+=======
+    function getHashParams() {
+      const hash = window.location.hash.substring(1)
+      const params = {}
+      hash.split('&').forEach(part => {
+        const [key, val] = part.split('=')
+        if (key) params[key] = decodeURIComponent(val || '')
+      })
+      return params
+    }
+
+    async function init() {
+      const params = getHashParams()
+      const type = params['type']
+
+      if (type === 'invite' || type === 'recovery') {
+        const { data: { session } } = await db.auth.getSession()
+        if (session) {
+>>>>>>> 47373dda80a4970dca6233d9a521c4734fec3be5
           hide(document.getElementById('section-login'))
           show(document.getElementById('section-setpw'))
           history.replaceState(null, '', window.location.pathname)
           return
         }
+<<<<<<< HEAD
         // 일반 로그인은 index.html로
         window.location.href = 'index.html'
       }
@@ -85,21 +110,35 @@
           window.location.href = 'index.html'
         }
       }
+=======
+      }
+
+      const { data: { session } } = await db.auth.getSession()
+      if (session) window.location.href = 'index.html'
+>>>>>>> 47373dda80a4970dca6233d9a521c4734fec3be5
     }
 
     init()
 
+<<<<<<< HEAD
     // ── 로그인 ──
+=======
+    // 로그인
+>>>>>>> 47373dda80a4970dca6233d9a521c4734fec3be5
     document.getElementById('btn-login').addEventListener('click', async () => {
       const email = document.getElementById('input-email').value.trim()
       const password = document.getElementById('input-password').value
       const errEl = document.getElementById('login-error')
       errEl.textContent = ''
 
+<<<<<<< HEAD
       if (!email || !password) {
         errEl.textContent = '이메일과 비밀번호를 입력해주세요'
         return
       }
+=======
+      if (!email || !password) { errEl.textContent = '이메일과 비밀번호를 입력해주세요'; return }
+>>>>>>> 47373dda80a4970dca6233d9a521c4734fec3be5
 
       const btn = document.getElementById('btn-login')
       btn.textContent = '로그인 중...'
@@ -113,14 +152,22 @@
         btn.disabled = false
         return
       }
+<<<<<<< HEAD
       // onAuthStateChange가 자동으로 index.html로 이동시켜줌
+=======
+      window.location.href = 'index.html'
+>>>>>>> 47373dda80a4970dca6233d9a521c4734fec3be5
     })
 
     document.getElementById('input-password').addEventListener('keydown', e => {
       if (e.key === 'Enter') document.getElementById('btn-login').click()
     })
 
+<<<<<<< HEAD
     // ── 비밀번호 설정 ──
+=======
+    // 비밀번호 설정
+>>>>>>> 47373dda80a4970dca6233d9a521c4734fec3be5
     document.getElementById('btn-setpw').addEventListener('click', async () => {
       const pw = document.getElementById('input-newpw').value
       const pwConfirm = document.getElementById('input-newpw-confirm').value
